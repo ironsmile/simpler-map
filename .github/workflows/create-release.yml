@@ -21,7 +21,6 @@ jobs:
           export file_name=SimplerMap-${version}.zip
           git archive -o "${file_name}" --format zip --prefix "${prefix}/" HEAD
           zip --delete "${file_name}" "${prefix}/.github/*"
-          zip --delete "${file_name}" "${prefix}/screenshots/*"
           mkdir "${prefix}"
           sed "s/^## Version:.*$/## Version: ${version}/" SimplerMap.toc > "${prefix}/SimplerMap.toc"
           zip --update "${file_name}" "${prefix}/SimplerMap.toc"
