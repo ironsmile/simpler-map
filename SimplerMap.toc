@@ -1,0 +1,11 @@
+## Interface: 11305
+## Version: 1.0.0
+## Title: SimplerMap
+## Notes: Smaller worldmap and it fades the map when moving
+## Author: ironsmile
+## Dependencies: Blizzard_WorldMap
+## SavedVariables: SimplerMap
+
+embeds.xml
+
+main.lua

@@ -1,0 +1,55 @@
+name: Create Release On Tag
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Create ZIP file
+        id: create_file
+        run: |
+          export prefix="SimplerMap"
+          export version=$(echo ${GITHUB_REF#refs/*/} | tr -d v)
+          export file_name=SimplerMap-${version}.zip
+          git archive -o "${file_name}" --format zip --prefix "${prefix}/" HEAD
+          zip --delete "${file_name}" "${prefix}/.github/*"
+          zip --delete "${file_name}" "${prefix}/screenshots/*"
+          mkdir "${prefix}"
+          sed "s/^## Version:.*$/## Version: ${version}/" SimplerMap.toc > "${prefix}/SimplerMap.toc"
+          zip --update "${file_name}" "${prefix}/SimplerMap.toc"
+          echo ::set-output name=file_name::${file_name}
+          echo ::set-output name=version::${GITHUB_REF#refs/*/}
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ steps.create_file.outputs.version }}
+          body: |
+            Changes in this Release
+            - TODO: add changes
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        id: upload-release-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ steps.create_file.outputs.file_name }}
+          asset_name: ${{ steps.create_file.outputs.file_name }}
+          asset_content_type: application/zip
