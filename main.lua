@@ -58,7 +58,7 @@ function SimplerMap:GetDBDefaults()
    return {
       profile = {
          fadeOpacity = 0.6,
-         scale = 0.8,
+         scale = 1.0,
       },
    }
 end
@@ -89,7 +89,10 @@ function SimplerMap:OnInitialize()
 end
 
 function SimplerMap:RefreshMap()
+   local duration = 0.5;
+   local restOpacity = 1.0;
+
    PlayerMovementFrameFader.AddDeferredFrame(
-      WorldMapFrame, self.db.profile.fadeOpacity, 3.0, .5)
+      WorldMapFrame, self.db.profile.fadeOpacity, restOpacity, duration)
    WorldMapFrame:SetScale(self.db.profile.scale)
 end
