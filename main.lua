@@ -104,7 +104,7 @@ function SimplerMap:GetDBDefaults()
    return {
       profile = {
          fadeOpacity = 0.6,
-         scale = 1.0,
+         scale = 0.8,
       },
    }
 end
