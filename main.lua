@@ -140,18 +140,31 @@ function SimplerMap:UpdateZoneLabelFunc()
       if (mapInfo and (mapInfo.mapID ~= uiMapID)) then
          name = mapInfo.name
 
-         local playerMinLevel, playerMaxLevel
+         local zoneMinLevel, zoneMaxLevel
 
          if (zoneData[mapInfo.mapID]) then
-            playerMinLevel = zoneData[mapInfo.mapID].min
-            playerMaxLevel = zoneData[mapInfo.mapID].max
+            zoneMinLevel = zoneData[mapInfo.mapID].min
+            zoneMaxLevel = zoneData[mapInfo.mapID].max
          end
 
-         if (name and self.db.profile.showLevelRange and playerMinLevel and playerMaxLevel and (playerMinLevel > 0) and (playerMaxLevel > 0)) then
-            if (playerMinLevel ~= playerMaxLevel) then
-               name = name.." ("..playerMinLevel.."-"..playerMaxLevel..")"
+         if (name and self.db.profile.showLevelRange and zoneMinLevel and zoneMaxLevel and (zoneMinLevel > 0) and (zoneMaxLevel > 0)) then
+            local colour
+            local playerLevel = UnitLevel("player")
+
+            if (playerLevel <= zoneMinLevel) then
+               colour = GetQuestDifficultyColor(zoneMinLevel)
+            elseif (playerLevel > zoneMaxLevel) then
+               colour = GetQuestDifficultyColor(zoneMaxLevel)
             else
-               name = name.." ("..playerMaxLevel..")"
+               colour = GetQuestDifficultyColor(playerLevel)
+            end
+
+            local colourCode = string.format("|cff%02x%02x%02x", math.floor(colour.r*255), math.floor(colour.g*255), math.floor(colour.b*255));
+
+            if (zoneMinLevel ~= zoneMaxLevel) then
+               name = name..colourCode.." ("..zoneMinLevel.."-"..zoneMaxLevel..")"..FONT_COLOR_CODE_CLOSE
+            else
+               name = name..colourCode.." ("..zoneMaxLevel..")"..FONT_COLOR_CODE_CLOSE
             end
          end
       else

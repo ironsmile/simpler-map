@@ -1,5 +1,5 @@
 ## Interface: 11505
-## Version: 1.1.0
+## Version: 1.2.0
 ## Title: SimplerMap
 ## Notes: Control world map size and fade it out while moving, show zone levels on map
 ## Author: ironsmile
