@@ -1,11 +1,12 @@
 ## Interface: 11505
-## Version: 1.0.1
+## Version: 1.1.0
 ## Title: SimplerMap
-## Notes: Control world map size and fade it out while moving
+## Notes: Control world map size and fade it out while moving, show zone levels on map
 ## Author: ironsmile
 ## Dependencies: Blizzard_WorldMap
 ## SavedVariables: SimplerMap
 
 embeds.xml
 
+# The addon code and logic
 main.lua
