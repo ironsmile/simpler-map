@@ -91,6 +91,18 @@ function SimplerMap:GetOptions()
                      self:RefreshMap()
                   end,
                },
+               showZoneLevelRange = {
+                  name = "Zone Level Range",
+                  desc = "Show zones' level range next their names in the map tooltips.",
+                  type = "toggle",
+                  order = 3,
+                  get = function(info)
+                     return self.db.profile.showLevelRange
+                  end,
+                  set = function(info, val)
+                     self.db.profile.showLevelRange = val
+                  end
+               }
             },
          },
       },
@@ -105,47 +117,50 @@ function SimplerMap:GetDBDefaults()
       profile = {
          fadeOpacity = 0.6,
          scale = 0.8,
+         showLevelRange = true,
       },
    }
 end
 
-local UpdateZoneLabel = function(label)
-   local map = label.dataProvider:GetMap()
+function SimplerMap:UpdateZoneLabelFunc()
+   return function(label)
+      local map = label.dataProvider:GetMap()
 
-   if (not map:IsCanvasMouseFocus()) then
-      label:EvaluateLabels()
-      return
-   end
-
-   local name, description
-   local uiMapID = map:GetMapID()
-
-   local cursorX, cursorY = map:GetNormalizedCursorPosition()
-   local mapInfo = C_Map.GetMapInfoAtPosition(uiMapID, cursorX, cursorY)
-
-   if (mapInfo and (mapInfo.mapID ~= uiMapID)) then
-      name = mapInfo.name
-
-      local playerMinLevel, playerMaxLevel
-
-      if (zoneData[mapInfo.mapID]) then
-         playerMinLevel = zoneData[mapInfo.mapID].min
-         playerMaxLevel = zoneData[mapInfo.mapID].max
+      if (not map:IsCanvasMouseFocus()) then
+         label:EvaluateLabels()
+         return
       end
 
-      if (name and playerMinLevel and playerMaxLevel and (playerMinLevel > 0) and (playerMaxLevel > 0)) then
-         if (playerMinLevel ~= playerMaxLevel) then
-            name = name.." ("..playerMinLevel.."-"..playerMaxLevel..")"
-         else
-            name = name.." ("..playerMaxLevel..")"
+      local name, description
+      local uiMapID = map:GetMapID()
+
+      local cursorX, cursorY = map:GetNormalizedCursorPosition()
+      local mapInfo = C_Map.GetMapInfoAtPosition(uiMapID, cursorX, cursorY)
+
+      if (mapInfo and (mapInfo.mapID ~= uiMapID)) then
+         name = mapInfo.name
+
+         local playerMinLevel, playerMaxLevel
+
+         if (zoneData[mapInfo.mapID]) then
+            playerMinLevel = zoneData[mapInfo.mapID].min
+            playerMaxLevel = zoneData[mapInfo.mapID].max
          end
-      end
-   else
-      name = MapUtil.FindBestAreaNameAtMouse(uiMapID, cursorX, cursorY)
-   end
 
-   label:SetLabel(MAP_AREA_LABEL_TYPE.AREA_NAME, name)
-   label:EvaluateLabels()
+         if (name and self.db.profile.showLevelRange and playerMinLevel and playerMaxLevel and (playerMinLevel > 0) and (playerMaxLevel > 0)) then
+            if (playerMinLevel ~= playerMaxLevel) then
+               name = name.." ("..playerMinLevel.."-"..playerMaxLevel..")"
+            else
+               name = name.." ("..playerMaxLevel..")"
+            end
+         end
+      else
+         name = MapUtil.FindBestAreaNameAtMouse(uiMapID, cursorX, cursorY)
+      end
+
+      label:SetLabel(MAP_AREA_LABEL_TYPE.AREA_NAME, name)
+      label:EvaluateLabels()
+   end
 end
 
 function SimplerMap:OnInitialize()
@@ -172,11 +187,7 @@ function SimplerMap:OnInitialize()
       return x/s, y/s;
    end
 
-   for provider in next, WorldMapFrame.dataProviders do
-      if provider.setAreaLabelCallback then
-         provider.Label:SetScript("OnUpdate", UpdateZoneLabel)
-      end
-   end
+   self:SetUpdateLabelsScript()
 end
 
 function SimplerMap:RefreshMap()
@@ -186,4 +197,12 @@ function SimplerMap:RefreshMap()
    PlayerMovementFrameFader.AddDeferredFrame(
       WorldMapFrame, self.db.profile.fadeOpacity, restOpacity, duration)
    WorldMapFrame:SetScale(self.db.profile.scale)
+end
+
+function SimplerMap:SetUpdateLabelsScript()
+   for provider in next, WorldMapFrame.dataProviders do
+      if provider.setAreaLabelCallback then
+         provider.Label:SetScript("OnUpdate", self:UpdateZoneLabelFunc())
+      end
+   end
 end
